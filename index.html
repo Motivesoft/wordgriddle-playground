@@ -24,6 +24,7 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            touch-action: none;
         }
         .grid-item {
             display: flex;
@@ -91,8 +92,36 @@
 
             attachEventListeners() {
                 this.grid.addEventListener('mousedown', this.startDrawing.bind(this));
-                this.grid.addEventListener('mousemove', this.draw.bind(this));
+                this.grid.addEventListener('mousemove', this.mouseDraw.bind(this));
                 document.addEventListener('mouseup', this.stopDrawing.bind(this));
+
+                this.grid.addEventListener('touchstart', this.handleTouchStart.bind(this));
+                this.grid.addEventListener('touchmove', this.handleTouchMove.bind(this));
+                document.addEventListener('touchend', this.handleTouchEnd.bind(this));
+            }
+
+            handleTouchStart(e) {
+                e.preventDefault();
+
+                this.startDrawing(e);
+            }
+
+            handleTouchMove(e) {
+                e.preventDefault();
+
+                // Work out where we have dragged to and process it
+                const touch = e.touches[0];
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+                if (element) {
+                    this.draw(element, touch.clientX, touch.clientY);
+                }
+            }
+
+            handleTouchEnd(e) {
+                e.preventDefault();
+
+                this.stopDrawing();
             }
 
             startDrawing(e) {
@@ -107,19 +136,25 @@
                 }
             }
 
-            draw(e) {
-                if (!this.isDrawing) return;
-                const cell = e.target;
-                
+            mouseDraw(e){
+                // Extract the mouse target and process it
+                this.draw(e.target, e.clientX, e.clientY);
+            }
+
+            draw(cell, clientX, clientY) {
+                if (!this.isDrawing) {
+                    return;
+                }
+
                 if (cell.classList.contains('grid-item') && cell !== this.lastCell) {
                     // Reject points too close to the edge sto avoid false positives
-                    const cellRect = e.target.getBoundingClientRect();
+                    const cellRect = cell.getBoundingClientRect();
                     const cellCentreX = cellRect.left + (cellRect.width/2);
                     const cellCentreY = cellRect.top + (cellRect.height/2);
-                    if( Math.abs( cellCentreX - e.clientX ) > this.tolerance || Math.abs( cellCentreY - e.clientY ) > this.tolerance ) {
+                    if( Math.abs( cellCentreX - clientX ) > this.tolerance || Math.abs( cellCentreY - clientY ) > this.tolerance ) {
                         return;
                     }
-                    
+
                     // Where are we
                     const cellIndex = parseInt(cell.dataset.index);
                     const cellCol = cellIndex % this.gridSize;
