@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4x4 Letter Grid with Multiple Letter Instances</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            user-select: none;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-template-rows: repeat(4, 80px);
+            gap: 10px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .grid-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e0e0e0;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            user-select: none;
+        }
+        .grid-item.selected {
+            background-color: #ffeb3b;
+            transform: scale(1.1);
+        }
+        #trail {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container" id="letterGrid"></div>
+    <svg id="trail" width="100%" height="100%"></svg>
+
+    <script>
+        class LetterGrid {
+            constructor() {
+                this.grid = document.getElementById('letterGrid');
+                this.trail = document.getElementById('trail');
+                this.letters = this.generateRandomLetters();
+                this.isDrawing = false;
+                this.selectedLetters = [];
+                this.lastCell = null;
+
+                // Use 16 here to make it easier to find for changes
+                this.gridSize = Math.sqrt(16);
+
+                this.initializeGrid();
+                this.attachEventListeners();
+            }
+
+            generateRandomLetters() {
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                return Array.from({length: 16}, () => 
+                    alphabet[Math.floor(Math.random() * alphabet.length)]
+                );
+            }
+
+            initializeGrid() {
+                this.grid.innerHTML = '';
+                this.letters.forEach((letter, index) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-item';
+                    cell.textContent = letter;
+                    cell.dataset.letter = letter;
+                    cell.dataset.index = index;
+                    this.grid.appendChild(cell);
+                });
+            }
+
+            attachEventListeners() {
+                this.grid.addEventListener('mousedown', this.startDrawing.bind(this));
+                this.grid.addEventListener('mousemove', this.draw.bind(this));
+                document.addEventListener('mouseup', this.stopDrawing.bind(this));
+            }
+
+            startDrawing(e) {
+                if (e.target.classList.contains('grid-item')) {
+                    console.log(`Start: ${e.target.dataset.letter} (${e.target.dataset.index})`)
+
+                    this.isDrawing = true;
+                    this.selectedLetters = [{
+                        letter: e.target.dataset.letter,
+                        index: parseInt(e.target.dataset.index)
+                    }];
+                    e.target.classList.add('selected');
+                    this.lastCell = e.target;
+                }
+            }
+
+            draw(e) {
+                if (!this.isDrawing) return;
+                const cell = e.target;
+                
+                if (cell.classList.contains('grid-item') && cell !== this.lastCell) {
+                    console.log(`MoveTo: ${e.target.dataset.letter} (${e.target.dataset.index})`)
+
+                    // Where are we
+                    const cellIndex = parseInt(cell.dataset.index);
+                    const cellCol = cellIndex % this.gridSize;
+                    const cellRow = (cellIndex-cellCol) / this.gridSize;
+                    
+                    // Where have we come from
+                    const prevIndex = this.selectedLetters[this.selectedLetters.length-1].index;
+                    const prevCol = prevIndex % this.gridSize;
+                    const prevRow = (prevIndex-prevCol) / this.gridSize;
+                    
+                    // What will help us work out if this is a valid move - valid being -1 and 1 respectively
+                    const lastSelectedIndex = this.selectedLetters.findIndex(item => item.index === cellIndex);
+                    const distance = Math.max(Math.abs(cellCol-prevCol),Math.abs(cellRow-prevRow));
+
+                    console.log(`        Cell:     ${cellIndex} (${cellRow},${cellCol})`);
+                    console.log(`        Prev:     ${prevIndex} (${prevRow},${prevCol})`);
+                    console.log(`        Dist:     ${distance}`);
+                    console.log(`        Selected: ${lastSelectedIndex}`);
+
+                    // cellIndex = cell just entered
+                    // lastSelectedIndex = -1 iff cell is not part of the current selection
+                    
+                    // if a valid move, select the square
+                    if (lastSelectedIndex === -1 && distance === 1) {
+                        console.log(`        --Selecting`)
+
+                        // Add new cell to selection
+                        cell.classList.add('selected');
+                        this.selectedLetters.push({
+                            letter: cell.dataset.letter,
+                            index: cellIndex
+                        });
+                        this.drawLine(this.lastCell, cell);
+
+                        console.log(`        lastCell(a)-> ${parseInt(cell.dataset.index)}`)
+                        this.lastCell = cell;
+                    } else if (lastSelectedIndex !== -1) {
+                        // Encountered an already selected cell. Is this a step backwards
+                        console.log(`        --lc: ${parseInt(this.lastCell.dataset.index)}`)
+                        console.log(`        --prior: ${this.selectedLetters[this.selectedLetters.length-2].index}`)
+
+                        if (cellIndex === this.selectedLetters[this.selectedLetters.length-2].index) {
+                            console.log(`        --Withdrawing`)
+                            // Withdrawing
+
+                            this.lastCell.classList.remove('selected');
+                            this.trail.removeChild(this.trail.lastChild);
+                            this.selectedLetters.pop();
+        
+                            console.log(`        lastCell(b)-> ${parseInt(cell.dataset.index)}`)
+                            this.lastCell = cell;
+                        }
+                    }
+                }
+            }
+
+            stopDrawing() {
+                if (this.isDrawing) {
+                    this.isDrawing = false;
+                    console.log(
+                        'Selected letters:', 
+                        this.selectedLetters.map(item => item.letter).join('')
+                    );
+                    this.clearTrail();
+                    document.querySelectorAll('.grid-item')
+                        .forEach(item => item.classList.remove('selected'));
+                }
+            }
+
+            drawLine(from, to) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                const fromRect = from.getBoundingClientRect();
+                const toRect = to.getBoundingClientRect();
+                
+                line.setAttribute('x1', fromRect.left + fromRect.width / 2);
+                line.setAttribute('y1', fromRect.top + fromRect.height / 2);
+                line.setAttribute('x2', toRect.left + toRect.width / 2);
+                line.setAttribute('y2', toRect.top + toRect.height / 2);
+                line.setAttribute('stroke', 'rgba(33, 150, 243, 0.7)');
+                line.setAttribute('stroke-width', '3');
+                this.trail.appendChild(line);
+            }
+
+            clearTrail() {
+                while (this.trail.firstChild) {
+                    this.trail.removeChild(this.trail.firstChild);
+                }
+            }
+        }
+
+        // Initialize the grid when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new LetterGrid();
+        });
+    </script>
+</body>
+</html>
