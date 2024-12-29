@@ -96,8 +96,6 @@
 
             startDrawing(e) {
                 if (e.target.classList.contains('grid-item')) {
-                    console.log(`Start: ${e.target.dataset.letter} (${e.target.dataset.index})`)
-
                     this.isDrawing = true;
                     this.selectedLetters = [{
                         letter: e.target.dataset.letter,
@@ -113,8 +111,6 @@
                 const cell = e.target;
                 
                 if (cell.classList.contains('grid-item') && cell !== this.lastCell) {
-                    console.log(`MoveTo: ${e.target.dataset.letter} (${e.target.dataset.index})`)
-
                     // Where are we
                     const cellIndex = parseInt(cell.dataset.index);
                     const cellCol = cellIndex % this.gridSize;
@@ -129,18 +125,11 @@
                     const lastSelectedIndex = this.selectedLetters.findIndex(item => item.index === cellIndex);
                     const distance = Math.max(Math.abs(cellCol-prevCol),Math.abs(cellRow-prevRow));
 
-                    console.log(`        Cell:     ${cellIndex} (${cellRow},${cellCol})`);
-                    console.log(`        Prev:     ${prevIndex} (${prevRow},${prevCol})`);
-                    console.log(`        Dist:     ${distance}`);
-                    console.log(`        Selected: ${lastSelectedIndex}`);
-
-                    // cellIndex = cell just entered
                     // lastSelectedIndex = -1 iff cell is not part of the current selection
+                    // distance = 1 if the origin and new cell are adjacent
                     
                     // if a valid move, select the square
                     if (lastSelectedIndex === -1 && distance === 1) {
-                        console.log(`        --Selecting`)
-
                         // Add new cell to selection
                         cell.classList.add('selected');
                         this.selectedLetters.push({
@@ -149,22 +138,19 @@
                         });
                         this.drawLine(this.lastCell, cell);
 
-                        console.log(`        lastCell(a)-> ${parseInt(cell.dataset.index)}`)
                         this.lastCell = cell;
                     } else if (lastSelectedIndex !== -1) {
                         // Encountered an already selected cell. Is this a step backwards
-                        console.log(`        --lc: ${parseInt(this.lastCell.dataset.index)}`)
-                        console.log(`        --prior: ${this.selectedLetters[this.selectedLetters.length-2].index}`)
+                        if (cellIndex === this.selectedLetters[this.selectedLetters.length-2]?.index) {
+                            // Pop the last selected letter and deselect its cell
 
-                        if (cellIndex === this.selectedLetters[this.selectedLetters.length-2].index) {
-                            console.log(`        --Withdrawing`)
-                            // Withdrawing
+                            const prevIndex = this.selectedLetters[this.selectedLetters.length-1].index;
+                            const prevCell = this.grid.childNodes[prevIndex];
+                            prevCell.classList.remove('selected');
 
-                            this.lastCell.classList.remove('selected');
                             this.trail.removeChild(this.trail.lastChild);
                             this.selectedLetters.pop();
         
-                            console.log(`        lastCell(b)-> ${parseInt(cell.dataset.index)}`)
                             this.lastCell = cell;
                         }
                     }
