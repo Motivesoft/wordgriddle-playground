@@ -38,7 +38,7 @@
             user-select: none;
         }
         .grid-item.selected {
-            background-color: #ffeb3b;
+            background-color: #e9ba3a;
             transform: scale(1.1);
         }
         #trail {
@@ -64,6 +64,7 @@
 
                 // Use 16 here to make it easier to find for changes
                 this.gridSize = Math.sqrt(16);
+                this.tolerance = 20;
 
                 this.initializeGrid();
                 this.attachEventListeners();
@@ -113,10 +114,9 @@
                 if (cell.classList.contains('grid-item') && cell !== this.lastCell) {
                     // Reject points too close to the edge sto avoid false positives
                     const cellRect = e.target.getBoundingClientRect();
-                    const cellCentreX = cellRect.x + (cellRect.width/2);
-                    const cellCentreY = cellRect.y + (cellRect.height/2);
-                    const tolerance = 20;
-                    if( Math.abs( cellCentreX - e.clientX ) > tolerance || Math.abs( cellCentreY - e.clientY ) > tolerance ) {
+                    const cellCentreX = cellRect.left + (cellRect.width/2);
+                    const cellCentreY = cellRect.top + (cellRect.height/2);
+                    if( Math.abs( cellCentreX - e.clientX ) > this.tolerance || Math.abs( cellCentreY - e.clientY ) > this.tolerance ) {
                         return;
                     }
                     
@@ -188,8 +188,8 @@
                 line.setAttribute('y1', fromRect.top + fromRect.height / 2);
                 line.setAttribute('x2', toRect.left + toRect.width / 2);
                 line.setAttribute('y2', toRect.top + toRect.height / 2);
-                line.setAttribute('stroke', 'rgba(33, 150, 243, 0.7)');
-                line.setAttribute('stroke-width', '3');
+                line.setAttribute('stroke', 'rgba(111, 176, 92, 0.5)');
+                line.setAttribute('stroke-width', '11');
                 this.trail.appendChild(line);
             }
 
