@@ -47,12 +47,17 @@
             pointer-events: none;
             z-index: 10;
         }
+        .safari-friendly & {
+            transform-origin: 0 0;
+            top: 0;
+            left: 0;
+        }
     </style>
 </head>
 <body>
     <div class="grid-container" id="letterGrid"></div>
-    <svg id="trail" width="100%" height="100%"></svg>
-    
+    <svg id="trail" class="safari-friendly" width="100%" height="100%"></svg>
+
     <script>
         class LetterGrid {
             constructor() {
@@ -215,22 +220,6 @@
             }
 
             drawLine(from, to) {
-                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                rect.setAttribute('x',this.grid.getBoundingClientRect().x);
-                rect.setAttribute('y',this.grid.getBoundingClientRect().y);
-                rect.setAttribute('width',this.grid.getBoundingClientRect().width);
-                rect.setAttribute('height',this.grid.getBoundingClientRect().height);
-                rect.setAttribute('fill','rgb(5,100,100,0.4)');
-                this.trail.appendChild(rect);
-                // const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                // console.log(`${from} ${from.getBoundingClientRect().x},${from.getBoundingClientRect().y}-${from.getBoundingClientRect().width},${from.getBoundingClientRect().height}`);
-                // rect.setAttribute('x',from.getBoundingClientRect().x);
-                // rect.setAttribute('y',from.getBoundingClientRect().y);
-                // rect.setAttribute('width',from.getBoundingClientRect().width);
-                // rect.setAttribute('height',from.getBoundingClientRect().height);
-                // rect.setAttribute('fill','blue');
-                // this.trail.appendChild(rect);
-
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 const fromRect = from.getBoundingClientRect();
                 const toRect = to.getBoundingClientRect();
