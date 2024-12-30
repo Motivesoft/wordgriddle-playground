@@ -79,7 +79,9 @@
 
                 // Use 16 here to make it easier to find for changes
                 this.gridSize = Math.sqrt(16);
-                this.tolerance = 20;
+
+                // Only register mouse moves/touches within 'tolerance' pixels of the centre of a grid item
+                this.tolerance = 30;
 
                 this.initializeGrid();
                 this.attachEventListeners();
@@ -105,15 +107,30 @@
             }
 
             attachEventListeners() {
-                this.grid.addEventListener('mousedown', this.startDrawing.bind(this));
-                this.grid.addEventListener('mousemove', this.mouseDraw.bind(this));
-                document.addEventListener('mouseup', this.stopDrawing.bind(this));
+                this.grid.addEventListener('mousedown', this.handleMouseStart.bind(this));
+                this.grid.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                document.addEventListener('mouseup', this.handleMouseEnd.bind(this));
 
                 this.grid.addEventListener('touchstart', this.handleTouchStart.bind(this));
                 this.grid.addEventListener('touchmove', this.handleTouchMove.bind(this));
                 document.addEventListener('touchend', this.handleTouchEnd.bind(this));
             }
 
+            // Mouse handlers
+            handleMouseStart(e) {
+                this.startDrawing(e);
+            }
+
+            handleMouseMove(e){
+                // Extract the mouse target and process it
+                this.draw(e.target, e.clientX, e.clientY);
+            }
+
+            handleMouseEnd(e) {
+                this.stopDrawing();
+            }
+
+            // Touch handlers
             handleTouchStart(e) {
                 e.preventDefault();
 
@@ -138,6 +155,7 @@
                 this.stopDrawing();
             }
 
+            // Start a new drag operation
             startDrawing(e) {
                 if (e.target.classList.contains('grid-item')) {
                     this.isDrawing = true;
@@ -150,11 +168,8 @@
                 }
             }
 
-            mouseDraw(e){
-                // Extract the mouse target and process it
-                this.draw(e.target, e.clientX, e.clientY);
-            }
-
+            // Continue a drag operation
+            // This takes a target and mouse coords 
             draw(cell, clientX, clientY) {
                 if (!this.isDrawing) {
                     return;
@@ -215,6 +230,7 @@
                 }
             }
 
+            // Stop a drag operation and process the outcome
             stopDrawing() {
                 if (this.isDrawing) {
                     this.isDrawing = false;
@@ -228,16 +244,10 @@
                 }
             }
 
-            htmlToSvg(point) {
-                const svg = this.trail;
-                const pt = svg.createSVGPoint();
-                pt.x = point.x;
-                pt.y = point.y;
-                return pt.matrixTransform(svg.getScreenCTM().inverse());
-            }
-
             drawLine(from, to) {
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                // Draw a line, using SVG, between the centre of 'from' to the centre of 'to'
+                // As we're using SVG here, we'll need to convert the coordinates to accomodate
+                // different browsers' handling of this  
                 const fromRect = from.getBoundingClientRect();
                 const fromCenter = this.htmlToSvg( { 
                     x: fromRect.left + fromRect.width / 2, 
@@ -248,7 +258,8 @@
                     x: toRect.left + toRect.width / 2, 
                     y: toRect.top + toRect.height / 2
                 } );
-
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 line.setAttribute('x1', fromCenter.x);
                 line.setAttribute('y1', fromCenter.y);
                 line.setAttribute('x2', toCenter.x);
@@ -262,6 +273,28 @@
                 while (this.trail.firstChild) {
                     this.trail.removeChild(this.trail.firstChild);
                 }
+            }
+
+            // Accept a point in the HTML DOM's coordinate space and return the equivalent in SVG space
+            // Most browsers seem to offer a 1:1 relationship between the two, but Safari does not (at time of writing)
+            // This method should work regardless of whether or not Safari ever changes its way of working
+            htmlToSvg(point) {
+                const svg = this.trail;
+                const pt = svg.createSVGPoint();
+                pt.x = point.x;
+                pt.y = point.y;
+                return pt.matrixTransform(svg.getScreenCTM().inverse());
+            }
+
+            // Accept a point in SVG coordinate space and return the equivalent in the HTML DOM's space
+            // Most browsers seem to offer a 1:1 relationship between the two, but Safari does not (at time of writing)
+            // This method should work regardless of whether or not Safari ever changes its way of working
+            svgToHtml(point) {
+                const svg = this.trail;
+                const pt = svg.createSVGPoint();
+                pt.x = point.x;
+                pt.y = point.y;
+                return pt.matrixTransform(svg.getScreenCTM());
             }
         }
 
