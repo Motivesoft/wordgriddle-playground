@@ -65,7 +65,7 @@
     <div class="panel"><h2>wordgriddle</h2></div>
     <div class="grid-container" id="letterGrid"></div>
     <svg id="trail" class="safari-friendly" width="100%" height="100%"></svg>
-    <div class="panel">Swipe to select words</div>
+    <div id="notes" class="panel">Swipe to select words</div>
 
     <script>
         class LetterGrid {
@@ -123,6 +123,7 @@
 
             handleMouseMove(e){
                 // Extract the mouse target and process it
+                notes.innerHTML = `${e.target==e.target} | ${e.target===e.target} | ${e.clientX}`;
                 this.draw(e.target, e.clientX, e.clientY);
             }
 
@@ -143,6 +144,9 @@
                 // Work out where we have dragged to and process it
                 const touch = e.touches[0];
                 const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+                const notes = document.getElementById('notes');
+                notes.innerHTML = `${element==touch.target} | ${element===e.target} | ${e.clientX} | ${touch.clientX}`;
 
                 if (element) {
                     this.draw(element, touch.clientX, touch.clientY);
