@@ -249,10 +249,13 @@
             stopDrawing() {
                 if (this.isDrawing) {
                     this.isDrawing = false;
-                    console.log(
-                        'Selected letters:', 
-                        this.selectedLetters.map(item => item.letter).join('')
-                    );
+
+                    const word = this.selectedLetters.map(item => item.letter).join('');
+                    console.log('Selected letters:', word);
+
+                    const notes = document.getElementById('notes');
+                    notes.innerHTML = `You selected: ${word}`;
+
                     this.clearTrail();
                     document.querySelectorAll('.grid-item')
                         .forEach(item => item.classList.remove('selected'));
