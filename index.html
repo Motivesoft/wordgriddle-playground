@@ -14,7 +14,6 @@
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
-            user-select: none;
         }
         .panel {
             text-align: center;
@@ -54,7 +53,7 @@
             z-index: 10;
         }
         .safari-friendly & {
-            transform-origin: 0 0;
+            transform-origin: 0% 0%;
             top: 0;
             left: 0;
         }
@@ -62,8 +61,8 @@
 </head>
 <body>
     <div class="panel"><h2>wordgriddle</h2></div>
-    <div class="grid-container" id="letterGrid"></div>
     <svg id="trail" class="safari-friendly" width="100%" height="100%"></svg>
+    <div class="grid-container" id="letterGrid"></div>
     <div class="panel">Swipe to select words</div>
 
     <script>
@@ -236,14 +235,18 @@
                 line.setAttribute('y1', fromRect.top + (fromRect.height / 2));
                 line.setAttribute('x2', toRect.left + (toRect.width / 2));
                 line.setAttribute('y2', toRect.top + (toRect.height / 2));
-
-                line.setAttribute('x1', 0);
-                line.setAttribute('y1', 0);
-                line.setAttribute('x2', this.grid.getBoundingClientRect().right);
-                line.setAttribute('y2', this.grid.getBoundingClientRect().bottom);
                 line.setAttribute('stroke', 'rgba(111, 176, 92, 0.5)');
                 line.setAttribute('stroke-width', '11');
                 this.trail.appendChild(line);
+
+                const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line1.setAttribute('x1', 0);
+                line1.setAttribute('y1', 0);
+                line1.setAttribute('x2', this.grid.getBoundingClientRect().right);
+                line1.setAttribute('y2', this.grid.getBoundingClientRect().bottom);
+                line1.setAttribute('stroke', 'rgba(111, 176, 92, 0.5)');
+                line1.setAttribute('stroke-width', '11');
+                this.trail.appendChild(line1);
 
                 const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 line2.setAttribute('x1', 0);
