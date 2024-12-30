@@ -7,6 +7,7 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -14,6 +15,10 @@
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
             user-select: none;
+        }
+        .panel {
+            text-align: center;
+            margin: 20px 0;
         }
         .grid-container {
             display: grid;
@@ -55,8 +60,10 @@
     </style>
 </head>
 <body>
+    <div class="panel">wordgriddle</div>
     <div class="grid-container" id="letterGrid"></div>
     <svg id="trail" class="safari-friendly" width="100%" height="100%"></svg>
+    <div class="panel">Swipe to select words</div>
 
     <script>
         class LetterGrid {
